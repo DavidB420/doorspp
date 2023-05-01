@@ -3,6 +3,8 @@ entry main
 section '.text' code executable readable
 main:
 
+infiniteLoop:
+
 sub rsp,64
 
 mov r8,Variables
@@ -16,6 +18,8 @@ call qword [rcx+8]
 call WaitForKeyPress
 
 add rsp,64
+
+jmp infiniteLoop
 
 ret
 
