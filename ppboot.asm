@@ -1,38 +1,39 @@
-format pe64 dll efi
+format pe64 efi
 entry main
-section '.text' code executable readable
+
+section '.text' executable readable
+
 main:
+;Save EFI system table that is loaded into rdx
+mov qword [efiSystemTable],rdx
+mov rsi,welcomeStr
+call printString
+;Infinite Loop for now
+cli
+jmp $
+ret
 
-infiniteLoop:
-
-sub rsp,64
-
-mov r8,Variables
-mov [r8],rcx
-mov [r8+8],rdx
-
+printString:
+push rdx
+push rcx
+push rax
+push rsi
+;Get ConOut in rcx, then use that to get the pointer for the OutputString function in rax 
+mov rdx,qword [efiSystemTable]
 mov rcx,[rdx+64]
-lea rdx,[greetingString]
-call qword [rcx+8]
-
-call WaitForKeyPress
-
-add rsp,64
-
-jmp infiniteLoop
-
+mov rax,[rcx+8]
+xchg rdx,rsi
+;Setup shadow space for GPRs
+sub rsp,32
+call rax
+add rsp,32
+pop rsi
+pop rax
+pop rcx
+pop rdx
 ret
 
-WaitForKeyPress:
-;mov rcx,[
-ret
+section '.data' readable writable
 
-section '.data' data readable writeable
-
-greetingString du 'Hello World',0
-
-Variables:
-EfiHandle dq 0
-EfiTable dq 0
-
-section '.reloc' fixups data discardable
+welcomeStr du 'Doors++ UEFI bootloader', 0xD, 0xA, 0
+efiSystemTable dq 0
