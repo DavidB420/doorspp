@@ -6,11 +6,22 @@ section '.text' executable readable
 main:
 ;Save EFI system table that is loaded into rdx
 mov qword [efiSystemTable],rdx
+mov qword [efiImageHandle],rcx
+;Output welcome message
 mov rsi,welcomeStr
 call printString
+;Begin to load the file system
+call initEfiFileSystem
 ;Infinite Loop for now
 cli
 jmp $
+ret
+
+initEfiFileSystem:
+mov rdx,EFI_LOADED_IMAGE_PROTOCOL_GUID
+lea r8,[efiImageHandle]
+mov rax,qword [efiSystemTable]
+mov rax,[rax+96]
 ret
 
 printString:
@@ -37,3 +48,5 @@ section '.data' readable writable
 
 welcomeStr du 'Doors++ UEFI bootloader', 0xD, 0xA, 0
 efiSystemTable dq 0
+efiImageHandle dq 0
+EFI_LOADED_IMAGE_PROTOCOL_GUID db 0xa1, 0x31, 0x1b, 0x5b, 0x62, 0x95, 0xd2, 0x11, 0x8e, 0x3f, 0x00, 0xa0, 0xc9, 0x69, 0x72, 0x3b
