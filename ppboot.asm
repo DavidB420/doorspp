@@ -22,7 +22,7 @@ mov rdx,EFI_LOADED_IMAGE_PROTOCOL_GUID
 lea r8,[efiImageHandle]
 mov rax,qword [efiSystemTable]
 mov rax,[rax+96]
-call [rax+152]
+call qword [rax+152]
 ret
 
 printString:
