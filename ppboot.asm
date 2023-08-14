@@ -20,12 +20,14 @@ jmp $
 ret
 
 initEfiFileSystem:
+;Get loaded image pointer
 mov rcx,[efiImageHandle]
 mov rdx,EFI_LOADED_IMAGE_PROTOCOL_GUID
 lea r8,[efiLoadedImage]
 mov rax,qword [efiSystemTable]
 mov rax,[rax+96]
 call qword [rax+152]
+;Get device path handle
 mov rcx,[efiLoadedImage]
 mov rcx,[rcx+24]
 mov rdx,EFI_DEVICE_PATH_PROTOCOL_GUID
@@ -33,6 +35,7 @@ lea r8,[efiDevicePathHandle]
 mov rax,qword [efiSystemTable]
 mov rax,[rax+96]
 call qword [rax+152]
+;Get volume handle
 mov rcx,[efiLoadedImage]
 mov rcx,[rcx+24]
 mov rdx,EFI_SIMPLE_FILE_SYSTEM_PROTOCOL_GUID
@@ -45,7 +48,7 @@ ret
 openFile:
 mov rcx,[efiVolumeHandle]
 lea rdx,[efiRootFSHandle]
-;call [rcx
+call qword [rcx+8]
 ret
 
 printString:
