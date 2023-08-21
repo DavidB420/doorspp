@@ -46,9 +46,22 @@ call qword [rax+152]
 ret
 
 openFile:
+push r8
 mov rcx,[efiVolumeHandle]
 lea rdx,[efiRootFSHandle]
 call qword [rcx+8]
+mov rcx,[efiRootFSHandle]
+lea rdx,[efiFileHandle]
+pop r8
+mov r9,EFI_FILE_MODE_READ
+mov qword[rsp + 8*4], 0 ;fix this, we are not using the stack
+call qword [rcx+8]
+mov rcx,2
+mov rdx,0x0030000
+lea r8,[efiOSBufferHandle]
+mov rax,qword [efiSystemTable]
+mov rax,[rax+96]
+call qword [rax+64]
 ret
 
 printString:
@@ -81,6 +94,9 @@ efiImageHandle dq 0
 efiDevicePathHandle dq 0
 efiVolumeHandle dq 0
 efiRootFSHandle dq 0
+efiFileHandle dq 0
+efiOSBufferHandle dq 0
 EFI_LOADED_IMAGE_PROTOCOL_GUID db 0xa1, 0x31, 0x1b, 0x5b, 0x62, 0x95, 0xd2, 0x11, 0x8e, 0x3f, 0x00, 0xa0, 0xc9, 0x69, 0x72, 0x3b
 EFI_DEVICE_PATH_PROTOCOL_GUID db 0x91, 0x6e, 0x57, 0x09, 0x3f, 0x6d, 0xd2, 0x11, 0x8e, 0x39, 0x00, 0xa0, 0xc9, 0x69, 0x72, 0x3b
 EFI_SIMPLE_FILE_SYSTEM_PROTOCOL_GUID db 0x22, 0x5b, 0x4e, 0x96, 0x59, 0x64, 0xd2, 0x11, 0x8e, 0x39, 0x00, 0xa0, 0xc9, 0x69, 0x72, 0x3b
+EFI_FILE_MODE_READ equ 0x0000000000000001
