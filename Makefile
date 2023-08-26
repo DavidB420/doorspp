@@ -1,11 +1,20 @@
-OUTPUT = ppboot.efi
+ASM_OUTPUT = ppboot.efi
+C_OUTPUT = ppldr.sys
 
-SOURCE = ppboot.asm
+ASM_SOURCE = ppboot.asm
+C_SOURCE = ppldr.c
 
-all: $(OUTPUT)
+CFLAGS ?= -m64
+LDFLAGS ?= -Wl,--oformat=binary
+ENTRYPOINT ?= -e main
 
-$(OUTPUT): $(SOURCE)
+all: $(ASM_OUTPUT) $(C_OUTPUT)
+
+$(ASM_OUTPUT): $(ASM_SOURCE)
 	fasm $< $@
 
+$(C_OUTPUT): $(C_SOURCE)
+	gcc $(CFLAGS) $(LDFLAGS) -c $< $(ENTRYPOINT) -o $@
+
 clean:
-	rm -f $(OUTPUT)
+	rm -f $(ASM_OUTPUT) $(C_OUTPUT)
