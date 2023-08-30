@@ -24,25 +24,25 @@ initEfiFileSystem:
 mov rcx,[efiImageHandle]
 mov rdx,EFI_LOADED_IMAGE_PROTOCOL_GUID
 lea r8,[efiLoadedImage]
-mov rax,qword [efiSystemTable]
-mov rax,[rax+96]
-call qword [rax+152]
+mov r9,qword [efiSystemTable]
+mov r9,[r9+EFI_SYSTEM_TABLE.BootServices]
+call qword [r9+EFI_BOOT_SERVICES.HandleProtocol]
 ;Get device path handle
 mov rcx,[efiLoadedImage]
 mov rcx,[rcx+24]
 mov rdx,EFI_DEVICE_PATH_PROTOCOL_GUID
 lea r8,[efiDevicePathHandle]
-mov rax,qword [efiSystemTable]
-mov rax,[rax+96]
-call qword [rax+152]
+mov r9,qword [efiSystemTable]
+mov r9,[r9+EFI_SYSTEM_TABLE.BootServices]
+call qword [r9+EFI_BOOT_SERVICES.HandleProtocol]
 ;Get volume handle
 mov rcx,[efiLoadedImage]
 mov rcx,[rcx+24]
 mov rdx,EFI_SIMPLE_FILE_SYSTEM_PROTOCOL_GUID
 lea r8,[efiVolumeHandle]
-mov rax,qword [efiSystemTable]
-mov rax,[rax+96]
-call qword [rax+152]
+mov r9,qword [efiSystemTable]
+mov r9,[r9+EFI_SYSTEM_TABLE.BootServices]
+call qword [r9+EFI_BOOT_SERVICES.HandleProtocol]
 ret
 
 openFile:
@@ -108,3 +108,4 @@ EFI_LOADED_IMAGE_PROTOCOL_GUID db 0xa1, 0x31, 0x1b, 0x5b, 0x62, 0x95, 0xd2, 0x11
 EFI_DEVICE_PATH_PROTOCOL_GUID db 0x91, 0x6e, 0x57, 0x09, 0x3f, 0x6d, 0xd2, 0x11, 0x8e, 0x39, 0x00, 0xa0, 0xc9, 0x69, 0x72, 0x3b
 EFI_SIMPLE_FILE_SYSTEM_PROTOCOL_GUID db 0x22, 0x5b, 0x4e, 0x96, 0x59, 0x64, 0xd2, 0x11, 0x8e, 0x39, 0x00, 0xa0, 0xc9, 0x69, 0x72, 0x3b
 EFI_FILE_MODE_READ = 0x0000000000000001
+include 'uefi.inc'
