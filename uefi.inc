@@ -1,6 +1,7 @@
 ;*********************************************************************
 ;*                                                                   *
 ;*          UEFI library for fasm by bzt, Public Domain              *
+;*          Modified by DavidB420 for Doors++                        *
 ;*                                                                   *
 ;*********************************************************************
  
@@ -182,6 +183,23 @@ struc EFI_RUNTIME_SERVICES_TABLE {
  .ResetSystem		dptr
 }
 struct EFI_RUNTIME_SERVICES_TABLE
+
+struc EFI_SIMPLE_FILE_SYSTEM_PROTOCOL
+{
+    .Revision               dptr
+    .OpenVolume             dptr
+}
+struct EFI_SIMPLE_FILE_SYSTEM_PROTOCOL
+
+struc EFI_FILE_PROTOCOL
+{
+    .Revision               dptr
+    .Open                   dptr
+    .Close                  dptr
+    .Delete                 dptr
+    .Read                   dptr
+}
+struct EFI_FILE_PROTOCOL
  
 struc EFI_TIME {
  .Year			int16

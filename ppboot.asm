@@ -26,7 +26,7 @@ mov rdx,EFI_LOADED_IMAGE_PROTOCOL_GUID
 lea r8,[efiLoadedImage]
 mov r9,qword [efiSystemTable]
 mov r9,[r9+EFI_SYSTEM_TABLE.BootServices]
-call qword [r9+EFI_BOOT_SERVICES.HandleProtocol]
+call qword [r9+EFI_BOOT_SERVICES_TABLE.HandleProtocol]
 ;Get device path handle
 mov rcx,[efiLoadedImage]
 mov rcx,[rcx+24]
@@ -34,7 +34,7 @@ mov rdx,EFI_DEVICE_PATH_PROTOCOL_GUID
 lea r8,[efiDevicePathHandle]
 mov r9,qword [efiSystemTable]
 mov r9,[r9+EFI_SYSTEM_TABLE.BootServices]
-call qword [r9+EFI_BOOT_SERVICES.HandleProtocol]
+call qword [r9+EFI_BOOT_SERVICES_TABLE.HandleProtocol]
 ;Get volume handle
 mov rcx,[efiLoadedImage]
 mov rcx,[rcx+24]
@@ -42,7 +42,7 @@ mov rdx,EFI_SIMPLE_FILE_SYSTEM_PROTOCOL_GUID
 lea r8,[efiVolumeHandle]
 mov r9,qword [efiSystemTable]
 mov r9,[r9+EFI_SYSTEM_TABLE.BootServices]
-call qword [r9+EFI_BOOT_SERVICES.HandleProtocol]
+call qword [r9+EFI_BOOT_SERVICES_TABLE.HandleProtocol]
 ret
 
 openFile:
@@ -50,26 +50,26 @@ push r8
 ;Open Volume
 mov rcx,[efiVolumeHandle]
 lea rdx,[efiRootFSHandle]
-call qword [rcx+8]
+call qword [rcx+EFI_SIMPLE_FILE_SYSTEM_PROTOCOL.OpenVolume]
 ;Open file
 mov rcx,[efiRootFSHandle]
 lea rdx,[efiFileHandle]
 pop r8
 mov r9,EFI_FILE_MODE_READ
 mov qword[rsp + 8*4], 0
-call qword [rcx+8]
+call qword [rcx+EFI_FILE_PROTOCOL.Open]
 ;Allocate memory pool
 mov rcx,2
 mov rdx,0x0030000
 lea r8,[efiOSBufferHandle]
-mov rax,qword [efiSystemTable]
-mov rax,[rax+96]
-call qword [rax+64]
+mov r9,qword [efiSystemTable]
+mov r9,[r9+EFI_SYSTEM_TABLE.BootServices]
+call qword [r9+EFI_BOOT_SERVICES_TABLE.AllocatePool]
 ;Read file
 mov rcx,[efiFileHandle]
 mov rdx,0x0030000
 mov r8,[efiOSBufferHandle]
-call qword [rcx+32]
+call qword [rcx+EFI_FILE_PROTOCOL.Read]
 ret
 
 printString:
