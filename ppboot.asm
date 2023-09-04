@@ -3,6 +3,8 @@ entry main
 
 section '.text' executable readable
 
+include 'uefi.inc'
+
 main:
 ;Save EFI system table that is loaded into rdx
 mov qword [efiSystemTable],rdx
@@ -14,6 +16,11 @@ call printString
 call initEfiFileSystem
 mov r8,ldrFN
 call openFile
+;Setup GOP
+;Move file to proper memory address
+mov rax,[efiOSBufferHandle]
+mov rcx,[efiReadSize]
+;repe movsb
 ;Infinite Loop for now
 cli
 jmp $
@@ -27,47 +34,36 @@ lea r8,[efiLoadedImage]
 mov r9,qword [efiSystemTable]
 mov r9,[r9+EFI_SYSTEM_TABLE.BootServices]
 call qword [r9+EFI_BOOT_SERVICES_TABLE.HandleProtocol]
-;Get device path handle
-mov rcx,[efiLoadedImage]
-mov rcx,[rcx+24]
-mov rdx,EFI_DEVICE_PATH_PROTOCOL_GUID
-lea r8,[efiDevicePathHandle]
-mov r9,qword [efiSystemTable]
-mov r9,[r9+EFI_SYSTEM_TABLE.BootServices]
-call qword [r9+EFI_BOOT_SERVICES_TABLE.HandleProtocol]
 ;Get volume handle
 mov rcx,[efiLoadedImage]
-mov rcx,[rcx+24]
+mov rcx,[rcx+EFI_LOADED_IMAGE_PROTOCOL.DeviceHandle]
 mov rdx,EFI_SIMPLE_FILE_SYSTEM_PROTOCOL_GUID
 lea r8,[efiVolumeHandle]
 mov r9,qword [efiSystemTable]
 mov r9,[r9+EFI_SYSTEM_TABLE.BootServices]
 call qword [r9+EFI_BOOT_SERVICES_TABLE.HandleProtocol]
-ret
-
-openFile:
-push r8
 ;Open Volume
 mov rcx,[efiVolumeHandle]
 lea rdx,[efiRootFSHandle]
 call qword [rcx+EFI_SIMPLE_FILE_SYSTEM_PROTOCOL.OpenVolume]
+ret
+
+openFile:
 ;Open file
 mov rcx,[efiRootFSHandle]
 lea rdx,[efiFileHandle]
-pop r8
 mov r9,EFI_FILE_MODE_READ
-mov qword[rsp + 8*4], 0
 call qword [rcx+EFI_FILE_PROTOCOL.Open]
 ;Allocate memory pool
 mov rcx,2
-mov rdx,0x0030000
+mov rdx,qword [efiReadSize]
 lea r8,[efiOSBufferHandle]
 mov r9,qword [efiSystemTable]
 mov r9,[r9+EFI_SYSTEM_TABLE.BootServices]
 call qword [r9+EFI_BOOT_SERVICES_TABLE.AllocatePool]
 ;Read file
 mov rcx,[efiFileHandle]
-mov rdx,0x0030000
+lea rdx,[efiReadSize]
 mov r8,[efiOSBufferHandle]
 call qword [rcx+EFI_FILE_PROTOCOL.Read]
 ret
@@ -104,8 +100,11 @@ efiVolumeHandle dq 0
 efiRootFSHandle dq 0
 efiFileHandle dq 0
 efiOSBufferHandle dq 0
+efiReadSize dq 1216
 EFI_LOADED_IMAGE_PROTOCOL_GUID db 0xa1, 0x31, 0x1b, 0x5b, 0x62, 0x95, 0xd2, 0x11, 0x8e, 0x3f, 0x00, 0xa0, 0xc9, 0x69, 0x72, 0x3b
-EFI_DEVICE_PATH_PROTOCOL_GUID db 0x91, 0x6e, 0x57, 0x09, 0x3f, 0x6d, 0xd2, 0x11, 0x8e, 0x39, 0x00, 0xa0, 0xc9, 0x69, 0x72, 0x3b
 EFI_SIMPLE_FILE_SYSTEM_PROTOCOL_GUID db 0x22, 0x5b, 0x4e, 0x96, 0x59, 0x64, 0xd2, 0x11, 0x8e, 0x39, 0x00, 0xa0, 0xc9, 0x69, 0x72, 0x3b
+blockiouuid db EFI_BLOCK_IO_PROTOCOL_UUID
+tmp	dq 0
+bootdiskblkio dq 0
 EFI_FILE_MODE_READ = 0x0000000000000001
-include 'uefi.inc'
+secondStageLoc = 0x030000
