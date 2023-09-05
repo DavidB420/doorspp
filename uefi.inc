@@ -110,6 +110,14 @@ struc SIMPLE_TEXT_OUTPUT_INTERFACE {
  .Mode		    	dptr
 }
 struct SIMPLE_TEXT_OUTPUT_INTERFACE
+
+struc EFI_SIMPLE_TEXT_INPUT_PROTOCOL
+{
+    .Reset                  dptr
+    .ReadKeyStroke          dptr
+    .WaitForKey             dptr
+}
+struct EFI_SIMPLE_TEXT_INPUT_PROTOCOL
  
 ;---include ends
  

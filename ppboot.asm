@@ -49,11 +49,19 @@ call qword [rcx+EFI_SIMPLE_FILE_SYSTEM_PROTOCOL.OpenVolume]
 ret
 
 openFile:
-;Open file
+;Open file and check if file loaded successfully
 mov rcx,[efiRootFSHandle]
 lea rdx,[efiFileHandle]
 mov r9,EFI_FILE_MODE_READ
 call qword [rcx+EFI_FILE_PROTOCOL.Open]
+cmp rax,0
+je skiperrorloadingkernel
+mov rsi,errorStr
+call printString
+call waitForAnyKey
+mov al,0xfe
+out 0x64,al
+skiperrorloadingkernel:
 ;Allocate memory pool
 mov rcx,2
 mov rdx,qword [efiReadSize]
@@ -67,6 +75,22 @@ lea rdx,[efiReadSize]
 mov r8,[efiOSBufferHandle]
 call qword [rcx+EFI_FILE_PROTOCOL.Read]
 ret
+
+waitForAnyKey:
+mov rdx,1
+mov rcx,[efiSystemTable]
+mov rcx,[rcx+EFI_SYSTEM_TABLE.ConIn]
+call qword [rcx+EFI_SIMPLE_TEXT_INPUT_PROTOCOL.Reset]
+loopwaitforkeypress:
+lea rdx,[efiKeyData]
+mov rcx,[efiSystemTable]
+mov rcx,[rcx+EFI_SYSTEM_TABLE.ConIn]
+call qword [rcx+EFI_SIMPLE_TEXT_INPUT_PROTOCOL.ReadKeyStroke]
+and rax,0xff
+cmp rax,6 ;Check if its not ready
+je loopwaitforkeypress
+ret
+
 
 printString:
 push rdx
@@ -91,6 +115,7 @@ ret
 section '.data' readable writable
 
 welcomeStr du 'Doors++ UEFI bootloader', 0xD, 0xA, 0
+errorStr du 'Error loading PPLDR.SYS!', 0xd, 0xa, 'Press any key to reboot...',0
 ldrFN du 'ppldr.sys',0
 efiSystemTable dq 0
 efiLoadedImage dq 0
@@ -101,6 +126,7 @@ efiRootFSHandle dq 0
 efiFileHandle dq 0
 efiOSBufferHandle dq 0
 efiReadSize dq 1216
+efiKeyData dq 0
 EFI_LOADED_IMAGE_PROTOCOL_GUID db 0xa1, 0x31, 0x1b, 0x5b, 0x62, 0x95, 0xd2, 0x11, 0x8e, 0x3f, 0x00, 0xa0, 0xc9, 0x69, 0x72, 0x3b
 EFI_SIMPLE_FILE_SYSTEM_PROTOCOL_GUID db 0x22, 0x5b, 0x4e, 0x96, 0x59, 0x64, 0xd2, 0x11, 0x8e, 0x39, 0x00, 0xa0, 0xc9, 0x69, 0x72, 0x3b
 blockiouuid db EFI_BLOCK_IO_PROTOCOL_UUID
