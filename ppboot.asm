@@ -17,11 +17,41 @@ call initEfiFileSystem
 mov r8,ldrFN
 call openFile
 ;Setup GOP
+call setupGOP
+;Exit boot services
 ;Move file to proper memory address
 mov rax,[efiOSBufferHandle]
 mov rcx,[efiReadSize]
 ;repe movsb
 ;Infinite Loop for now
+cli
+jmp $
+ret
+
+setupGOP:
+;Get GOP pointer
+lea rcx,[gopguid]
+mov rdx,0
+lea r8,[efiGOPHandle]
+mov r9,qword [efiSystemTable]
+mov r9,[r9+EFI_SYSTEM_TABLE.BootServices]
+call qword [r9+EFI_BOOT_SERVICES_TABLE.LocateProtocol]
+;Query number of video modes
+mov rax,[efiGOPHandle]
+mov rax,[rax+EFI_GRAPHICS_OUTPUT_PROTOCOL.Mode]
+mov ecx,dword [rax+EFI_GRAPHICS_OUTPUT_PROTOCOL_MODE.MaxMode]
+and ecx,ecx
+dec rcx
+loopgetgopmodes:
+push rcx
+mov rdx,rcx
+mov rcx,[efiGOPHandle]
+lea r8,[gopModeSize]
+mov r9,gopModeInfo
+call qword [rcx+EFI_GRAPHICS_OUTPUT_PROTOCOL.QueryMode]
+pop rcx
+loop loopgetgopmodes
+mov r9,gopModeInfo
 cli
 jmp $
 ret
@@ -125,12 +155,15 @@ efiVolumeHandle dq 0
 efiRootFSHandle dq 0
 efiFileHandle dq 0
 efiOSBufferHandle dq 0
+efiGOPHandle dq 0
 efiReadSize dq 1216
 efiKeyData dq 0
 EFI_LOADED_IMAGE_PROTOCOL_GUID db 0xa1, 0x31, 0x1b, 0x5b, 0x62, 0x95, 0xd2, 0x11, 0x8e, 0x3f, 0x00, 0xa0, 0xc9, 0x69, 0x72, 0x3b
 EFI_SIMPLE_FILE_SYSTEM_PROTOCOL_GUID db 0x22, 0x5b, 0x4e, 0x96, 0x59, 0x64, 0xd2, 0x11, 0x8e, 0x39, 0x00, 0xa0, 0xc9, 0x69, 0x72, 0x3b
 blockiouuid db EFI_BLOCK_IO_PROTOCOL_UUID
-tmp	dq 0
-bootdiskblkio dq 0
+gopguid db EFI_GRAPHICS_OUTPUT_PROTOCOL_UUID
+gopMax dd 0
+gopModeSize dq 0
+gopModeInfo dd 0,0,0,0,0,0,0,0
 EFI_FILE_MODE_READ = 0x0000000000000001
 secondStageLoc = 0x030000
