@@ -36,6 +36,17 @@ lea r8,[efiGOPHandle]
 mov r9,qword [efiSystemTable]
 mov r9,[r9+EFI_SYSTEM_TABLE.BootServices]
 call qword [r9+EFI_BOOT_SERVICES_TABLE.LocateProtocol]
+;Get current video mode
+mov rcx,[efiGOPHandle]
+mov edx,dword [rcx+EFI_GRAPHICS_OUTPUT_PROTOCOL.Mode]
+mov edx,dword [rdx+EFI_GRAPHICS_OUTPUT_PROTOCOL_MODE.CurrentMode]
+and edx,edx
+lea r8,[gopModeSize]
+lea r9,[gopModeInfo]
+call qword [rcx+EFI_GRAPHICS_OUTPUT_PROTOCOL.QueryMode]
+mov r9, qword [gopModeInfo]
+mov eax,dword [r9+EFI_GRAPHICS_OUTPUT_MODE_INFORMATION.VerticalResolution]
+mov ebx,dword [r9+EFI_GRAPHICS_OUTPUT_MODE_INFORMATION.HorizontalResolution]
 ;Query number of video modes
 mov rax,[efiGOPHandle]
 mov rax,[rax+EFI_GRAPHICS_OUTPUT_PROTOCOL.Mode]
@@ -47,8 +58,11 @@ push rcx
 mov rdx,rcx
 mov rcx,[efiGOPHandle]
 lea r8,[gopModeSize]
-mov r9,gopModeInfo
+lea r9,[gopModeInfo]
 call qword [rcx+EFI_GRAPHICS_OUTPUT_PROTOCOL.QueryMode]
+mov r9, qword [gopModeInfo]
+mov eax,dword [r9+EFI_GRAPHICS_OUTPUT_MODE_INFORMATION.VerticalResolution]
+mov ebx,dword [r9+EFI_GRAPHICS_OUTPUT_MODE_INFORMATION.HorizontalResolution]
 pop rcx
 loop loopgetgopmodes
 mov r9,gopModeInfo
