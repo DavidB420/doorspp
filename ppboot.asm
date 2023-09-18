@@ -63,11 +63,24 @@ call qword [rcx+EFI_GRAPHICS_OUTPUT_PROTOCOL.QueryMode]
 mov r9, qword [gopModeInfo]
 mov eax,dword [r9+EFI_GRAPHICS_OUTPUT_MODE_INFORMATION.VerticalResolution]
 mov ebx,dword [r9+EFI_GRAPHICS_OUTPUT_MODE_INFORMATION.HorizontalResolution]
+imul rax,rbx
+cmp rax,qword [currentHighestRes]
+jl skipsethighestres
+mov byte [currentHighestIndex],dl
+mov qword [currentHighestRes],rax
+skipsethighestres:
 pop rcx
 loop loopgetgopmodes
-mov r9,gopModeInfo
-cli
-jmp $
+;Set the highest resolution as the video mode
+mov dl,byte [currentHighestIndex]
+mov rcx,[efiGOPHandle]
+call qword [rcx+EFI_GRAPHICS_OUTPUT_PROTOCOL.SetMode]
+;Save video framebuffer and size
+mov rax,[efiGOPHandle]
+mov rcx,[rax+EFI_GRAPHICS_OUTPUT_PROTOCOL_MODE.FrameBufferBase]
+mov qword [frameBufferPtr],rcx
+mov rbx,[rax+EFI_GRAPHICS_OUTPUT_PROTOCOL_MODE.FrameBufferSize]
+mov qword [frameBufferSize],rbx
 ret
 
 initEfiFileSystem:
@@ -172,6 +185,10 @@ efiOSBufferHandle dq 0
 efiGOPHandle dq 0
 efiReadSize dq 1216
 efiKeyData dq 0
+currentHighestRes dq 0
+currentHighestIndex db 0
+frameBufferSize dq 0
+frameBufferPtr dq 0
 EFI_LOADED_IMAGE_PROTOCOL_GUID db 0xa1, 0x31, 0x1b, 0x5b, 0x62, 0x95, 0xd2, 0x11, 0x8e, 0x3f, 0x00, 0xa0, 0xc9, 0x69, 0x72, 0x3b
 EFI_SIMPLE_FILE_SYSTEM_PROTOCOL_GUID db 0x22, 0x5b, 0x4e, 0x96, 0x59, 0x64, 0xd2, 0x11, 0x8e, 0x39, 0x00, 0xa0, 0xc9, 0x69, 0x72, 0x3b
 blockiouuid db EFI_BLOCK_IO_PROTOCOL_UUID
