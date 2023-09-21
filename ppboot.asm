@@ -19,10 +19,14 @@ call openFile
 ;Setup GOP
 call setupGOP
 ;Exit boot services
+mov rax,qword [efiSystemTable]
+mov rax,[rax+EFI_SYSTEM_TABLE.BootServices]
+call qword [rax+EFI_BOOT_SERVICES_TABLE.ExitBootServices]
 ;Move file to proper memory address
-mov rax,[efiOSBufferHandle]
+mov rsi,[efiOSBufferHandle]
+mov rdi,0x30000
 mov rcx,[efiReadSize]
-;repe movsb
+repe movsb
 ;Infinite Loop for now
 cli
 jmp $
@@ -156,8 +160,8 @@ push rax
 push rsi
 ;Get ConOut in rcx, then use that to get the pointer for the OutputString function in rax 
 mov rdx,qword [efiSystemTable]
-mov rcx,[rdx+64]
-mov rax,[rcx+8]
+mov rcx,[rdx+EFI_SYSTEM_TABLE.ConOut]
+mov rax,[rcx+SIMPLE_TEXT_OUTPUT_INTERFACE.OutputString]
 xchg rdx,rsi
 ;Setup shadow space for GPRs
 sub rsp,32

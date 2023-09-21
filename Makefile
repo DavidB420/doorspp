@@ -4,8 +4,8 @@ C_OUTPUT = ppldr.sys
 ASM_SOURCE = ppboot.asm
 C_SOURCE = ppldr.c
 
-CFLAGS ?= -m64
-LDFLAGS ?= -Wl,--oformat=binary
+CFLAGS ?= -m64 -static
+LDFLAGS ?= -Wl,--oformat=binary -static
 ENTRYPOINT ?= -e main
 
 all: $(ASM_OUTPUT) $(C_OUTPUT)
