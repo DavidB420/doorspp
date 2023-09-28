@@ -27,9 +27,13 @@ mov rsi,[efiOSBufferHandle]
 mov rdi,0x30000
 mov rcx,[efiReadSize]
 repe movsb
+call elfLoad
 ;Infinite Loop for now
 cli
 jmp $
+ret
+
+elfLoad:
 ret
 
 setupGOP:
