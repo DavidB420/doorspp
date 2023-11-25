@@ -34,6 +34,19 @@ jmp $
 ret
 
 elfLoad:
+;Check ELF signature
+cmp dword [30001h],1179403647
+je failElfLoad
+;Get Program entry and program header pos
+mov rax,qword [30018h]
+mov rbx,qword [30020h]
+;Get file offset for text
+add rbx,30008h
+mov rcx,qword [rbx]
+mov rdx,qword [rbx+8]
+failElfLoad:
+cli
+jmp $
 ret
 
 setupGOP:
@@ -180,8 +193,8 @@ ret
 section '.data' readable writable
 
 welcomeStr du 'Doors++ UEFI bootloader', 0xD, 0xA, 0
-errorStr du 'Error loading PPLDR.SYS!', 0xd, 0xa, 'Press any key to reboot...',0
-ldrFN du 'ppldr.sys',0
+errorStr du 'Error loading PPKRNL.SYS!', 0xd, 0xa, 'Press any key to reboot...',0
+ldrFN du 'ppkrnl.sys',0
 efiSystemTable dq 0
 efiLoadedImage dq 0
 efiImageHandle dq 0
