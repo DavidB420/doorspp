@@ -24,7 +24,7 @@ mov rax,[rax+EFI_SYSTEM_TABLE.BootServices]
 call qword [rax+EFI_BOOT_SERVICES_TABLE.ExitBootServices]
 ;Move file to proper memory address
 mov rsi,[efiOSBufferHandle]
-mov rdi,0x30000
+mov rdi,0x20000
 mov rcx,[efiReadSize]
 repe movsb
 call elfLoad
@@ -35,13 +35,14 @@ ret
 
 elfLoad:
 ;Check ELF signature
-cmp dword [30001h],1179403647
+cmp dword [20001h],1179403647
 je failElfLoad
 ;Get Program entry and program header pos
-mov rax,qword [30018h]
-mov rbx,qword [30020h]
+mov rax,qword [20018h]
+mov rbx,qword [20020h]
+mov r8,qword [20036h]
 ;Get file offset for text
-add rbx,30008h
+add rbx,20008h
 mov rcx,qword [rbx]
 mov rdx,qword [rbx+8]
 failElfLoad:
