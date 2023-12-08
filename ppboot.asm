@@ -40,11 +40,25 @@ je failElfLoad
 ;Get Program entry and program header pos
 mov rax,qword [20018h]
 mov rbx,qword [20020h]
-mov r8,qword [20036h]
-;Get file offset for text
+mov r8w,word [20038h]
+;Read and load program entries
 add rbx,20008h
+loopreadProgEntries:
 mov rcx,qword [rbx]
 mov rdx,qword [rbx+8]
+test rcx,rcx
+jz skipCopyDataElf
+mov r9,qword [rbx+24]
+mov rsi,rcx
+add rsi,20000h
+mov rdi,rdx
+mov rcx,r9
+repe movsb
+skipCopyDataElf:
+add rbx,56
+dec r8
+cmp r8,0
+jne loopreadProgEntries
 failElfLoad:
 cli
 jmp $
