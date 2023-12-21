@@ -28,9 +28,8 @@ mov rdi,0x20000
 mov rcx,[efiReadSize]
 repe movsb
 call elfLoad
-;Infinite Loop for now
-cli
-jmp $
+;Jump to kernel
+jmp 0x30000
 ret
 
 elfLoad:
@@ -60,8 +59,6 @@ dec r8
 cmp r8,0
 jne loopreadProgEntries
 failElfLoad:
-cli
-jmp $
 ret
 
 setupGOP:
@@ -155,6 +152,14 @@ call waitForAnyKey
 mov al,0xfe
 out 0x64,al
 skiperrorloadingkernel:
+;Get file size
+mov rcx,[efiFileHandle]
+mov rdx,EFI_FILE_INFO_ID_GUID
+lea r8,[efiFileInfoBufferSize]
+mov r9,efiFileInfoBuffer
+call qword [rcx+EFI_FILE_PROTOCOL.GetInfo]
+mov r9,[efiFileInfoBuffer+8]
+mov qword [efiReadSize],r9
 ;Allocate memory pool
 mov rcx,2
 mov rdx,qword [efiReadSize]
@@ -221,12 +226,16 @@ efiOSBufferHandle dq 0
 efiGOPHandle dq 0
 efiReadSize dq 1216
 efiKeyData dq 0
+efiFileInfo dq 0
 currentHighestRes dq 0
 currentHighestIndex db 0
 frameBufferSize dq 0
 frameBufferPtr dq 0
 EFI_LOADED_IMAGE_PROTOCOL_GUID db 0xa1, 0x31, 0x1b, 0x5b, 0x62, 0x95, 0xd2, 0x11, 0x8e, 0x3f, 0x00, 0xa0, 0xc9, 0x69, 0x72, 0x3b
 EFI_SIMPLE_FILE_SYSTEM_PROTOCOL_GUID db 0x22, 0x5b, 0x4e, 0x96, 0x59, 0x64, 0xd2, 0x11, 0x8e, 0x39, 0x00, 0xa0, 0xc9, 0x69, 0x72, 0x3b
+EFI_FILE_INFO_ID_GUID db 0x92, 0x6e, 0x57, 0x09, 0x3f, 0x6d, 0xd2, 0x11, 0x8e,0x39,0x00,0xa0,0xc9,0x69,0x72,0x3b
+efiFileInfoBufferSize dq 128
+efiFileInfoBuffer: times 128 db 0
 blockiouuid db EFI_BLOCK_IO_PROTOCOL_UUID
 gopguid db EFI_GRAPHICS_OUTPUT_PROTOCOL_UUID
 gopMax dd 0

@@ -206,6 +206,10 @@ struc EFI_FILE_PROTOCOL
     .Close                  dptr
     .Delete                 dptr
     .Read                   dptr
+	.Write                  dptr
+	.GetPosition            dptr
+	.SetPosition            dptr
+	.GetInfo                dptr
 }
 struct EFI_FILE_PROTOCOL
  
