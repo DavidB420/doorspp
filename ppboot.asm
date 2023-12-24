@@ -31,6 +31,8 @@ mov rcx,[efiReadSize]
 repe movsb
 call elfLoad
 ;Jump to kernel
+mov esi,[frameBufferPPS]
+mov rdi,[frameBufferPtr]
 jmp 0x30000
 ret
 
@@ -109,6 +111,8 @@ cmp rax,qword [currentHighestRes]
 jl skipsethighestres
 mov byte [currentHighestIndex],dl
 mov qword [currentHighestRes],rax
+mov eax,dword [r9+EFI_GRAPHICS_OUTPUT_MODE_INFORMATION.PixelsPerScanline]
+mov dword [frameBufferPPS],eax
 skipsethighestres:
 pop rcx
 loop loopgetgopmodes
@@ -122,8 +126,6 @@ add rsp,32
 mov rax,[efiGOPHandle]
 mov rcx,[rax+EFI_GRAPHICS_OUTPUT_PROTOCOL_MODE.FrameBufferBase]
 mov qword [frameBufferPtr],rcx
-mov rbx,[rax+EFI_GRAPHICS_OUTPUT_PROTOCOL_MODE.FrameBufferSize]
-mov qword [frameBufferSize],rbx
 ret
 
 initEfiFileSystem:
@@ -272,7 +274,7 @@ efiKeyData dq 0
 efiFileInfo dq 0
 currentHighestRes dq 0
 currentHighestIndex db 0
-frameBufferSize dq 0
+frameBufferPPS dd 0
 frameBufferPtr dq 0
 EFI_LOADED_IMAGE_PROTOCOL_GUID db 0xa1, 0x31, 0x1b, 0x5b, 0x62, 0x95, 0xd2, 0x11, 0x8e, 0x3f, 0x00, 0xa0, 0xc9, 0x69, 0x72, 0x3b
 EFI_SIMPLE_FILE_SYSTEM_PROTOCOL_GUID db 0x22, 0x5b, 0x4e, 0x96, 0x59, 0x64, 0xd2, 0x11, 0x8e, 0x39, 0x00, 0xa0, 0xc9, 0x69, 0x72, 0x3b
