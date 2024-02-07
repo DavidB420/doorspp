@@ -1,10 +1,6 @@
-int main(unsigned long long *fBuffer, int fBufferPPS)
-{
-	int val = -1;
-	for (unsigned long long i = 0; i < 100; i++)
-	{
-		fBuffer[i] = val;
-	}
+#include "drivers/video/video.h"
 
-	while (1);
+int main(unsigned long long *fBuffer, unsigned long long  *gopHandle)
+{
+	initGOP(gopHandle);
 }
